@@ -39,85 +39,31 @@ class generalPurposeRegisters{
         const lowerByte = data.slice(2,4);
         this.process1ByteData(higherByte);
         this.process1ByteData(lowerByte);
-        return [parseInt(higherByte,16),parseInt(lowerByte,16)];
+        return [parseInt(higherByte.toString(16),16),parseInt(lowerByte.toString(16),16)];
     }
 
 
     getHL(){
-        let address = parseInt(this.REG.H+this.REG.L);
+        let address = parseInt(this.REG.H.toString(16)+this.REG.L.toString(16), 16);
         return address;
     }
 
-    set(reg,val){
-        this.validateRegister(reg)
-        this.process1ByteData(reg)
-        let decimal = this.process1ByteData(val)
+    set(reg,val){ // string ? convert from hex to decimal : assumes decimal
+        this.validateRegister(reg);
+        let decimal = val;
+        if(typeof val ==='string'){
+            decimal = this.process1ByteData(val);
+        }
         this.REG[reg] = decimal;
     }
 
     get(reg){
-        this.validateRegister(reg)
+        this.validateRegister(reg);
         return this.REG[reg];
     }
 
     log(){
         console.log('REG', this.REG);
-    }
-
-    mov(TO, FROM){ // TO = REG / M ; FROM = REG / M
-        this.validateRegister(TO);
-        this.validateRegister(FROM);
-        if(TO==='M'){
-            const address = this.getHL();
-            const regVal = this.get(FROM)
-            RAM.set(address,regVal);
-        }
-        else if(FROM==='M'){
-            const address = this.getHL();
-            const memVal = RAM.get(address);
-            this.REG[TO] = memVal;
-        }
-        else {
-            this.REG[TO] = this.REG[FROM];
-        }
-    }
-
-    mvi(TO,DATA){
-        if(TO==='M'){
-            const address = this.getHL();
-            RAM.set(address,DATA); 
-        }
-        else {
-            this.set(TO, DATA);
-        }
-    }
-
-    lxi(PAIR, DATA){
-        if( this.validateRegisterPair(PAIR) && DATA.length===4){
-            const higherByte = parseInt(DATA.slice(0,2),16);
-            const lowerByte = parseInt(DATA.slice(2,4),16);
-            switch(PAIR){
-                case 'B':
-                    this.REG['B']= higherByte;
-                    this.REG['C']= lowerByte;
-                    break;
-                case 'D':
-                    this.REG['D']= higherByte;
-                    this.REG['E']= lowerByte;
-                    break;
-                case 'H':
-                    this.REG['H']= higherByte;
-                    this.REG['L']= lowerByte;
-                    break;
-            }
-        } else {
-            if(!'BDH'.includes(PAIR)){
-                throw new Error('Invalid Register');
-            }
-            if(DATA.length!==4){
-                throw new Error('Invalid Data');
-            }
-        }
     }
 }
 module.exports = new generalPurposeRegisters();
